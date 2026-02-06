@@ -354,7 +354,7 @@ function startChronos() {
 function startAudio() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain(); 
-    masterGain.gain.value = 0.25; // Audio increased from 0.12
+    masterGain.gain.value = 0.4;
     leftOsc = audioCtx.createOscillator(); rightOsc = audioCtx.createOscillator();
     let noiseBuffer = audioCtx.createBuffer(1, 2 * audioCtx.sampleRate, audioCtx.sampleRate);
     let out = noiseBuffer.getChannelData(0), lastOut = 0;
@@ -363,7 +363,7 @@ function startAudio() {
         out[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = out[i]; out[i] *= 3.5;
     }
     noiseNode = audioCtx.createBufferSource(); noiseNode.buffer = noiseBuffer; noiseNode.loop = true;
-    let nG = audioCtx.createGain(); nG.gain.value = 0.02;
+    let nG = audioCtx.createGain(); nG.gain.value = 0.05;
     noiseNode.connect(nG).connect(masterGain);
     let pL = audioCtx.createStereoPanner(); pL.pan.value = -0.8;
     let pR = audioCtx.createStereoPanner(); pR.pan.value = 0.8;
@@ -381,7 +381,7 @@ function updateAudio(p) {
 
 document.addEventListener("visibilitychange", () => {
     isWilted = document.hidden;
-    if (masterGain) masterGain.gain.setTargetAtTime(isWilted ? 0.01 : 0.25, audioCtx.currentTime, 0.5);
+    if (masterGain) masterGain.gain.setTargetAtTime(isWilted ? 0.01 : 0.4, audioCtx.currentTime, 0.5);
 });
 
 // Function to sync the input color with the CSS --accent variable
