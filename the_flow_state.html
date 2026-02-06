@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>THE FLOW STATE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&family=Space+Mono&display=swap');
+        
+        :root {
+            --accent: #03b3ff;
+            --bg: #050b14;
+            --glass: rgba(255, 255, 255, 0.03);
+            --text: #f1faee;
+        }
+
+        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Space Mono', monospace; color: var(--text); }
+
+        #ui-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 100; transition: all 0.8s ease;
+            background: var(--glass);
+            padding: 2.5rem; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(25px);
+        }
+
+        #ui-overlay.complete {
+            background: rgba(5, 11, 20, 0.98);
+            backdrop-filter: blur(50px);
+            border: 1px solid var(--accent);
+        }
+
+        #objective-display {
+            position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+            font-size: 0.7rem; letter-spacing: 5px; opacity: 0; transition: opacity 2s;
+            text-transform: uppercase; color: var(--accent); text-align: center;
+        }
+
+        .input-wrap { display: flex; flex-direction: column; gap: 15px; align-items: flex-start; }
+        .field { width: 320px; }
+        
+        input[type="text"], input[type="number"], select {
+            background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.9rem; outline: none; width: 100%; color: #fff;
+            padding: 8px 0; text-transform: uppercase; letter-spacing: 2px;
+        }
+        
+        select { background: #111; cursor: pointer; font-family: 'Space Mono'; }
+
+        .palette-config { display: flex; gap: 8px; margin-top: 10px; width: 100%; }
+        .color-input { 
+            -webkit-appearance: none; border: none; width: 100%; height: 30px; 
+            cursor: pointer; background: transparent;
+        }
+        .color-input::-webkit-color-swatch { border: 1px solid rgba(255,255,255,0.2); }
+
+        input:focus { border-bottom: 1px solid var(--accent); }
+        label { font-size: 0.5rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 10px; width: 100%; }
+        button {
+            flex: 1; background: transparent; border: 1px solid var(--accent);
+            color: var(--accent); padding: 10px; cursor: pointer;
+            font-family: 'Space Mono'; font-size: 0.7rem; transition: 0.3s;
+        }
+        button:hover { background: var(--accent); color: var(--bg); }
+
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+
+<div id="objective-display">SYSTEM_IDLE</div>
+
+<div id="ui-overlay">
+    <div class="input-wrap" id="initial-form">
+        <div class="field">
+            <label>Neural_Objective</label>
+            <input type="text" id="goalInput" placeholder="SET_GOAL">
+        </div>
+        <div class="field">
+            <label>Temporal_Window (Min)</label>
+            <input type="number" id="timeInput" placeholder="00">
+        </div>
+        <div class="field">
+            <label>Fracturing_Logic</label>
+            <select id="styleInput">
+                <option value="FLOWER_MANDALA">NEURAL_FLOWER (BLOOM)</option>
+                <option value="KINETIC_STRING">KINETIC_STRING (HARMONIC)</option>
+                <option value="MONDRIAN_GRID">MONDRIAN_GRID (FRACTURING)</option>
+                <option value="CYBER_GLITCH">CYBER_GLITCH (CHROMATIC)</option>
+                <option value="ORBITAL_PATH">ORBITAL_PATH (GRAVITY)</option>
+                <option value="GEOMETRIC_LACE">GEOMETRIC_LACE (FRACTAL)</option>
+                <option value="VOID_STAR">VOID_STAR (SINGULARITY)</option>
+                <option value="SPRINKLES">SPRINKLES (VELOCITY)</option>
+                <option value="NEBULA_PULSE">NEBULA_PULSE (ATMOSPHERIC)</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Color_Matrix</label>
+            <div class="palette-config">
+                <input type="color" id="accent-trigger" class="color-input" value="#61adff">
+                <input type="color" class="color-input" value="#7aff9c">
+                <input type="color" class="color-input" value="#ff80f4">
+                <input type="color" class="color-input" value="#ffe175">
+                <input type="color" class="color-input" value="#ff247b">
+            </div>
+        </div>
+        <div class="instructions" style="font-size:0.5rem; opacity:0.5;">[ PRESS ENTER TO BEGIN ]</div>
+    </div>
+
+    <div class="input-wrap" id="conclusion-ui" style="display:none;">
+        <label style="font-size: 1rem; color: var(--accent);">SESSION_INTERCEPTED</label>
+        <div class="btn-row">
+            <button onclick="saveFocusImage()">SAVE_MATRIX_PNG</button>
+            <button onclick="showExtend()">CONTINUE_FLOW</button>
+            <button onclick="location.reload()">TERMINATE</button>
+        </div>
+        <div id="extend-field" style="display:none; width: 100%; margin-top:15px;">
+            <input type="number" id="extraTime" placeholder="ADD_MINUTES" style="width:100%;">
+        </div>
+    </div>
+</div>
+
+<script>
+let active = false, isWilted = false, sessionComplete = false;
+let startTime, totalDuration, currentGoal = "";
+let gridItems = [];
+let audioCtx, leftOsc, rightOsc, masterGain, noiseNode;
+let PALETTE = [];
+let currentStyle = "FLOWER_MANDALA";
+
+function setup() {
+    createCanvas(windowWidth, windowHeight);
+}
+
+function draw() {
+    background(isWilted ? 2 : 8);
+    
+    if (active) {
+        let elapsed = (millis() - startTime) / 60000;
+        let progress = constrain(elapsed / totalDuration, 0, 1);
+        
+        if (progress >= 1 && !sessionComplete) triggerEndSession();
+
+        if (!sessionComplete && frameCount % 20 === 0 && gridItems.length < (progress * 800)) {
+            spawnNode();
+        }
+
+        for (let i = 0; i < gridItems.length; i++) {
+            gridItems[i].update();
+            gridItems[i].display(isWilted, progress);
+        }
+
+        drawHUD(progress);
+        updateAudio(progress);
+    }
+}
+
+function spawnNode() {
+    let x = random(width * 0.05, width * 0.95);
+    let y = random(height * 0.05, height * 0.95);
+    let baseSize = (currentStyle === "KINETIC_STRING" || currentStyle === "ORBITAL_PATH" || currentStyle === "MONDRIAN_GRID") ? random(100, 280) : random(30, 180);
+    let size = baseSize * (1 - (gridItems.length / 1800));
+    gridItems.push(new GridBlock(x, y, size, size));
+}
+
+class GridBlock {
+    constructor(x, y, w, h) {
+        this.baseX = x; this.baseY = y;
+        this.x = x; this.y = y;
+        this.w = w; this.h = h;
+        this.color = color(random(PALETTE));
+        this.noiseSeed = random(1000);
+        this.angle = random(TWO_PI);
+        this.rotSpeed = random(-0.005, 0.005);
+        this.shiverX = 0;
+        this.shiverY = 0;
+        this.intensity = 0;
+    }
+
+    update() {
+        this.angle += this.rotSpeed * (1 + this.intensity * 5);
+        
+        let d = dist(mouseX, mouseY, this.baseX, this.baseY);
+        let reactionRange = 300;
+        
+        if (d < reactionRange) {
+            this.intensity = map(d, 0, reactionRange, 1, 0);
+            let force = map(d, 0, reactionRange, 60, 0);
+            let angleToMouse = atan2(this.baseY - mouseY, this.baseX - mouseX);
+            this.shiverX = lerp(this.shiverX, cos(angleToMouse) * force + random(-12,12), 0.15);
+            this.shiverY = lerp(this.shiverY, sin(angleToMouse) * force + random(-12,12), 0.15);
+        } else {
+            this.intensity = lerp(this.intensity, 0, 0.05);
+            this.shiverX = lerp(this.shiverX, 0, 0.05);
+            this.shiverY = lerp(this.shiverY, 0, 0.05);
+        }
+        
+        this.x = this.baseX + this.shiverX;
+        this.y = this.baseY + this.shiverY;
+    }
+
+    display(wilted, progress) {
+        push();
+        translate(this.x, this.y);
+        rotate(this.angle);
+        
+        let alpha = wilted ? 40 : 200;
+        this.color.setAlpha(alpha);
+        noFill();
+        stroke(this.color);
+
+        if (currentStyle === "FLOWER_MANDALA") {
+            strokeWeight(0.8);
+            let petals = floor(lerp(6, 12, this.intensity));
+            for(let i=0; i<petals; i++) {
+                rotate(TWO_PI / petals);
+                let bloom = this.w/4 + (this.intensity * this.w/2);
+                ellipse(bloom, 0, this.w/2, this.w/3);
+            }
+        } else if (currentStyle === "KINETIC_STRING") {
+            let strCount = 10;
+            strokeWeight(lerp(0.5, 3, this.intensity));
+            for(let i=0; i < strCount; i++) {
+                let off = map(i, 0, strCount, -this.h/2, this.h/2);
+                let wave = sin(frameCount * 0.08 + i) * (15 + this.intensity * 60);
+                bezier(-this.w/2, off, -this.w/4, off + wave, this.w/4, off - wave, this.w/2, off);
+            }
+        } else if (currentStyle === "MONDRIAN_GRID") {
+            strokeWeight(2 + this.intensity * 4);
+            rectMode(CENTER);
+            if (this.intensity > 0.4) {
+                fill(this.color);
+                rect(0, 0, this.w, this.h);
+                stroke(0);
+                line(-this.w/2, 0, this.w/2, 0);
+                line(0, -this.h/2, 0, this.h/2);
+            } else {
+                rect(0, 0, this.w, this.h);
+            }
+        } else if (currentStyle === "NEBULA_PULSE") {
+            fill(this.color); noStroke();
+            let pulse = sin(frameCount * 0.06 + this.noiseSeed) * (10 + this.intensity * 40);
+            ellipse(0, 0, this.w + pulse, this.h + pulse);
+        } else if (currentStyle === "CYBER_GLITCH") {
+            strokeWeight(1.5);
+            let shift = this.intensity * 25;
+            rect(-shift, shift, this.w, this.h);
+            push();
+            stroke(255, 150);
+            rect(shift, -shift, this.w, this.h);
+            pop();
+            if(this.intensity > 0.7) line(-this.w, 0, this.w, 0);
+        } else if (currentStyle === "ORBITAL_PATH") {
+            strokeWeight(1);
+            for(let i=0; i<4; i++) {
+                let r = this.w * (0.3 + i*0.2) + (this.intensity * 80);
+                ellipse(0, 0, r, r * 0.6);
+                rotate(frameCount * 0.02);
+            }
+        } else if (currentStyle === "GEOMETRIC_LACE") {
+            for(let i=0; i<5; i++) {
+                rect(0, 0, this.w/(i+1), this.h/(i+1));
+                rotate(QUARTER_PI + this.intensity * 2);
+            }
+        } else if (currentStyle === "VOID_STAR") {
+            let rays = floor(lerp(8, 24, this.intensity));
+            for(let i=0; i<rays; i++) {
+                rotate(TWO_PI / rays);
+                line(this.intensity * 10, 0, this.w/2 + (this.intensity * 40), 0);
+            }
+        } else if (currentStyle === "SPRINKLES") {
+            strokeWeight(lerp(1, 4, this.intensity));
+            let len = this.h * (0.5 + this.intensity);
+            line(0, -len/2, 0, len/2);
+            if(frameCount % 5 === 0) circle(0, random(-len/2, len/2), 2);
+        }
+        pop();
+    }
+}
+
+function triggerEndSession() {
+    sessionComplete = true;
+    let overlay = document.getElementById('ui-overlay');
+    overlay.classList.add('complete');
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'all';
+    document.getElementById('initial-form').style.display = 'none';
+    document.getElementById('conclusion-ui').style.display = 'flex';
+}
+
+function showExtend() {
+    document.getElementById('extend-field').style.display = 'block';
+    document.getElementById('extraTime').focus();
+}
+
+function saveFocusImage() {
+    saveCanvas(`CHRONOS_${currentStyle}_${currentGoal}`, 'png');
+}
+
+function drawHUD(p) {
+    let barWidth = 200;
+    push();
+    translate(40, height - 85);
+    stroke(255, 20); line(0, 0, barWidth, 0);
+    stroke(PALETTE[PALETTE.length-1]); line(0, 0, barWidth * p, 0);
+    fill(255, 150); noStroke(); textSize(8);
+    text(`STATE: ${sessionComplete ? 'COMPLETE' : floor(p*100)+'%'}`, 0, 15);
+    text(`NODES: ${gridItems.length}`, 0, 25);
+    text(`LOGIC: ${currentStyle}`, 0, 35);
+    pop();
+}
+
+document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        if (!active) {
+            const goal = document.getElementById('goalInput').value;
+            const mins = document.getElementById('timeInput').value;
+            if(goal && mins) {
+                PALETTE = Array.from(document.querySelectorAll('.color-input')).map(el => el.value);
+                currentGoal = goal;
+                totalDuration = parseFloat(mins);
+                currentStyle = document.getElementById('styleInput').value;
+                startChronos();
+            }
+        } else if (sessionComplete) {
+            const extra = document.getElementById('extraTime').value;
+            if(extra) {
+                totalDuration += parseFloat(extra);
+                sessionComplete = false;
+                let overlay = document.getElementById('ui-overlay');
+                overlay.classList.remove('complete');
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+            }
+        }
+    }
+});
+
+function startChronos() {
+    active = true; startTime = millis();
+    document.getElementById('ui-overlay').style.opacity = '0';
+    document.getElementById('ui-overlay').style.pointerEvents = 'none';
+    document.getElementById('objective-display').innerText = `TARGET_OBJECTIVE // ${currentGoal}`;
+    document.getElementById('objective-display').style.opacity = '0.4';
+    startAudio();
+}
+
+function startAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain(); masterGain.gain.value = 0.12;
+    leftOsc = audioCtx.createOscillator(); rightOsc = audioCtx.createOscillator();
+    let noiseBuffer = audioCtx.createBuffer(1, 2 * audioCtx.sampleRate, audioCtx.sampleRate);
+    let out = noiseBuffer.getChannelData(0), lastOut = 0;
+    for (let i = 0; i < noiseBuffer.length; i++) {
+        let white = Math.random() * 2 - 1;
+        out[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = out[i]; out[i] *= 3.5;
+    }
+    noiseNode = audioCtx.createBufferSource(); noiseNode.buffer = noiseBuffer; noiseNode.loop = true;
+    let nG = audioCtx.createGain(); nG.gain.value = 0.02;
+    noiseNode.connect(nG).connect(masterGain);
+    let pL = audioCtx.createStereoPanner(); pL.pan.value = -0.8;
+    let pR = audioCtx.createStereoPanner(); pR.pan.value = 0.8;
+    leftOsc.connect(pL).connect(masterGain); rightOsc.connect(pR).connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+    leftOsc.start(); rightOsc.start(); noiseNode.start();
+}
+
+function updateAudio(p) {
+    if (!audioCtx) return;
+    let beat = lerp(10, 40, p);
+    leftOsc.frequency.setTargetAtTime(120, audioCtx.currentTime, 0.5);
+    rightOsc.frequency.setTargetAtTime(120 + (sessionComplete ? 0 : beat), audioCtx.currentTime, 0.5);
+}
+
+document.addEventListener("visibilitychange", () => {
+    isWilted = document.hidden;
+    if (masterGain) masterGain.gain.setTargetAtTime(isWilted ? 0.01 : 0.12, audioCtx.currentTime, 0.5);
+});
+
+// Function to sync the input color with the CSS --accent variable
+const accentInput = document.getElementById('accent-trigger');
+
+accentInput.addEventListener('input', (e) => {
+    document.documentElement.style.setProperty('--accent', e.target.value);
+});
+
+// Run once at start to sync the initial value
+document.documentElement.style.setProperty('--accent', accentInput.value);
+
+</script>
+</body>
+</html>
