@@ -85,13 +85,13 @@
         <div class="field">
             <label>Fracturing_Logic</label>
             <select id="styleInput">
+                <option value="VOID_STAR">VOID_STAR (SINGULARITY)</option>
                 <option value="FLOWER_MANDALA">NEURAL_FLOWER (BLOOM)</option>
                 <option value="KINETIC_STRING">KINETIC_STRING (HARMONIC)</option>
                 <option value="MONDRIAN_GRID">MONDRIAN_GRID (FRACTURING)</option>
                 <option value="CYBER_GLITCH">CYBER_GLITCH (CHROMATIC)</option>
                 <option value="ORBITAL_PATH">ORBITAL_PATH (GRAVITY)</option>
                 <option value="GEOMETRIC_LACE">GEOMETRIC_LACE (FRACTAL)</option>
-                <option value="VOID_STAR">VOID_STAR (SINGULARITY)</option>
                 <option value="SPRINKLES">SPRINKLES (VELOCITY)</option>
                 <option value="NEBULA_PULSE">NEBULA_PULSE (ATMOSPHERIC)</option>
             </select>
@@ -128,7 +128,7 @@ let startTime, totalDuration, currentGoal = "";
 let gridItems = [];
 let audioCtx, leftOsc, rightOsc, masterGain, noiseNode;
 let PALETTE = [];
-let currentStyle = "FLOWER_MANDALA";
+let currentStyle = "VOID_STAR";
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
