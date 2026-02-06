@@ -1,7 +1,7 @@
 # THE FLOW STATE: Neuro-Aesthetic Temporal Mapping
 
 ## Overview
-The Flow State (The Chronos V11.0) is a generative bio-feedback environment designed to facilitate and maintain deep work states. By integrating linear temporal progression with reactive generative art and binaural auditory stimulation, the system creates a closed-loop environment that visualizes focus. Unlike traditional productivity timers that utilize intrusive notifications, this project leverages neuro-aesthetic principles to provide a non-distracting, peripheral awareness of time passing.
+[THE FLOW STATE](https://berthashipper.github.io/The-Flow-State/) is a generative bio-feedback environment designed to facilitate and maintain deep work states. By integrating linear temporal progression with reactive generative art and binaural auditory stimulation, the system creates a closed-loop environment that visualizes focus. Unlike traditional productivity timers that utilize intrusive notifications, this project leverages neuro-aesthetic principles to provide a non-distracting, peripheral awareness of time passing.
 
 ## Scientific Foundations
 
@@ -43,18 +43,31 @@ The UI is built with a high degree of transparency and a "blur-behind" (backdrop
 
 ## Usage Instructions
 
-Initialization: Open the_flow_state.html in any modern web browser.  
-Neural Objective: Input your specific goal. This serves as a "commitment contract," a known psychological technique to increase follow-through.  
-Temporal Window: Set your duration in minutes.  
-Color Matrix: Customize the palette to your environment. Warmer tones (reds/oranges) are linked to alertness, while cooler tones (blues/greens) facilitate sustained calm.  
-Execution: Press Enter. Minimize all other distractions.  
-Interaction: Use your cursor to interact with the nodes; the "shiver" effect is designed to provide tactile-visual feedback, keeping the user engaged with the interface.
+1. **Initialization**  
+   Open [THE FLOW STATE](https://berthashipper.github.io/The-Flow-State/) in any web browser.
+
+2. **Neural Objective**  
+   Input your specific goal. This serves as a commitment contract, a known psychological technique to increase follow-through.
+
+3. **Temporal Window**  
+   Set your duration in minutes.
+
+4. **Color Matrix**  
+   Customize the palette to your environment.  
+   - Brighter tones: alertness  
+   - Cooler tones: sustained calm
+
+5. **Execution**  
+   Press Enter. Minimize all other distractions.
+
+6. **Interaction**  
+   Use your cursor to interact with the nodes. The “shiver” effect provides tactile-visual feedback, maintaining engagement.
 
 ---
 
 ## Expanded Research Mapping to Implementation
 
-This section connects cognitive science and perception research directly to mechanisms implemented in the codebase.
+Connecting cognitive science and perception research directly to mechanisms implemented in the codebase:
 
 ### 1. Progressive Density as Cognitive Gradient
 
@@ -72,7 +85,7 @@ This mirrors findings in embodied cognition showing that humans estimate duratio
 The backdrop blur, soft alpha strokes, and semi-transparent palette intentionally bias rendering toward **magnocellular visual pathways**, which are more sensitive to motion and luminance than fine detail. Peripheral vision is optimized for detecting change, not reading text.
 
 The result:  
-The system becomes a *temporal atmosphere* rather than an object of focus.
+The system is a *temporal atmosphere* rather than an object of focus.
 
 This aligns with attentional research showing that low-contrast peripheral motion can maintain arousal without triggering task-switching behavior in the prefrontal cortex.
 
@@ -83,7 +96,6 @@ Each node responds to cursor proximity:
 ```
 let d = dist(mouseX, mouseY, this.baseX, this.baseY);
 ```
-
 
 The “shiver” response establishes a light sensorimotor feedback loop. Even when the user is not actively interacting, the knowledge that the environment is reactive increases perceived agency. Studies in human-computer interaction demonstrate that micro-reactivity increases engagement and reduces fatigue by reinforcing a sense of presence.
 
@@ -98,7 +110,6 @@ let beat = lerp(10, 40, p);
 rightOsc.frequency = 120 + beat;
 ```
 
-
 This maps session progress to a rising arousal curve analogous to the **Yerkes–Dodson law**, which describes optimal performance at moderate arousal levels. Early in the session, slower beats encourage entry into a calm flow state. Near completion, faster beats subtly elevate alertness, counteracting fatigue.
 
 The added filtered noise layer simulates environmental texture, similar to brown noise used in concentration studies to stabilize attention in distractible populations.
@@ -107,10 +118,10 @@ The added filtered noise layer simulates environmental texture, similar to brown
 
 Different rendering styles function as visual primes:
 
-- Radial symmetry → meditative stabilization
-- Rectilinear grids → executive function reinforcement
-- Organic pulses → emotional regulation
-- Chromatic glitch → novelty stimulation
+- Radial symmetry: meditative stabilization
+- Rectilinear grids: executive function reinforcement
+- Organic pulses: emotional regulation
+- Chromatic glitch: novelty stimulation
 
 Research in environmental psychology shows that visual structure can bias cognitive mode. The system allows the user to select an aesthetic that matches the task domain, effectively tuning the workspace to the mental model required.
 
